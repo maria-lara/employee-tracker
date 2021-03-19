@@ -74,6 +74,29 @@ function beginPrompt() {
 })
 }
 
+var roleList = [];
+function selectRole() {
+  connection.query("SELECT * FROM role", function(err, res) {
+    if (err) throw err
+    for (var i = 0; i < res.length; i++) {
+      roleList.push(res[i].title);
+    }
+
+  })
+  return roleList;
+}
+
+var managersList = [];
+function selectManager() {
+  connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
+    if (err) throw err
+    for (var i = 0; i < res.length; i++) {
+      managersList.push(res[i].first_name);
+    }
+
+  })
+  return managersList;
+}
 
 // 1. View Employees //
 function viewAllEmployees() {
@@ -106,150 +129,121 @@ function viewAllDepartments() {
     })
   }
 
-  // 4. Add an Employee
-  function addEmployee() { 
-    inquirer.prompt([
+// 4. Add an Employee
+function addEmployee() { 
+  inquirer.prompt([
+      {
+        name: "firstname",
+        type: "input",
+         message: "Enter their first name:"
+      },
+      {
+        name: "lastname",
+        type: "input",
+        message: "Enter their last name:"
+      },
+      {
+        name: "role",
+        type: "list",
+        message: "What is their role? ",
+        choices: selectRole()
+      },
+      {
+          name: "choice",
+          type: "rawlist",
+          message: "What is their managers name?",
+          choices: selectManager()
+      }
+  ]).then(function (val) {
+    var roleId = selectRole().indexOf(val.role) + 1
+    var managerId = selectManager().indexOf(val.choice) + 1
+    connection.query("INSERT INTO employee SET ?", 
+    {
+        first_name: val.firstName,
+        last_name: val.lastName,
+        manager_id: managerId,
+        role_id: roleId
+          
+    },function(err){
+        if (err) throw err
+        console.table(val)
+        beginPrompt()
+    })
+
+  })
+}
+// 5. Update an employee //
+function updateEmployee() {
+  connection.query("SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;", function(err, res) {
+   if (err) throw err
+   console.log(res)
+
+
+  inquirer.prompt([
         {
-          name: "firstname",
-          type: "input",
-          message: "Enter their first name:"
-        },
-        {
-          name: "lastname",
-          type: "input",
-          message: "Enter their last name:"
+          name: "lastName",
+          type: "rawlist",
+          choices: function() {
+            var lastName = [];
+            for (var i = 0; i < res.length; i++) {
+              lastName.push(res[i].last_name);
+            }
+            return lastName;
+          },
+          message: "What is the Employee's last name? ",
         },
         {
           name: "role",
-          type: "list",
-          message: "What is their role? ",
+          type: "rawlist",
+          message: "What is the Employees new title? ",
           choices: selectRole()
         },
-        {
-            name: "choice",
-            type: "rawlist",
-            message: "What is their managers name?",
-            choices: selectManager()
-        }
-    ]).then(function (val) {
+    ]).then(function(val) {
       var roleId = selectRole().indexOf(val.role) + 1
-      var managerId = selectManager().indexOf(val.choice) + 1
-      connection.query("INSERT INTO employee SET ?", 
+      connection.query("UPDATE employee SET WHERE ?", 
       {
-          first_name: val.firstName,
-          last_name: val.lastName,
-          manager_id: managerId,
-          role_id: roleId
-          
-      }, function(err){
+        last_name: val.lastName
+         
+      }, 
+      {
+        role_id: roleId
+         
+      }, 
+      function(err){
           if (err) throw err
-          console.table(val)
-          beginPrompt()
+          console.table(val);
+          beginPrompt();
       })
-
-  })
-}
-
-var roleList = [];
-function selectRole() {
-  connection.query("SELECT * FROM role", function(err, res) {
-    if (err) throw err
-    for (var i = 0; i < res.length; i++) {
-      roleList.push(res[i].title);
-    }
-
-  })
-  return roleList;
-}
-
-var managersList = [];
-function selectManager() {
-  connection.query("SELECT first_name, last_name FROM employee WHERE manager_id IS NULL", function(err, res) {
-    if (err) throw err
-    for (var i = 0; i < res.length; i++) {
-      managersList.push(res[i].first_name);
-    }
-
-  })
-  return managersList;
-}
-
-
-// 5. Update an employee //
-function updateEmployee() {
-    connection.query("SELECT employee.last_name, role.title FROM employee JOIN role ON employee.role_id = role.id;", function(err, res) {
-
-     if (err) throw err
-     console.log(res)
-
-    inquirer.prompt([
-          {
-            name: "lastName",
-            type: "rawlist",
-            choices: function() {
-              var lastName = [];
-              for (var i = 0; i < res.length; i++) {
-                lastName.push(res[i].last_name);
-              }
-              return lastName;
-            },
-            message: "What is this employee's last name? ",
-          },
-          {
-            name: "role",
-            type: "rawlist",
-            message: "What is their new title? ",
-            choices: selectRole()
-          },
-      ]).then(function(val) {
-        var roleId = selectRole().indexOf(val.role) + 1
-        connection.query("UPDATE employee SET WHERE ?", 
-        {
-          last_name: val.lastName
-           
-        }, 
-        {
-          role_id: roleId
-           
-        }, 
-        function(err){
-            if (err) throw err
-            console.table(val)
-            beginPrompt()
-        })
-  
     });
-  });
+});
 
-  }
+}
+// 6. Add a new role //
 
-  // 6. Add a new role //
-
-  function addRole() { 
-    connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role",   function(err, res) {
-      inquirer.prompt([
-          {
-            name: "Title",
-            type: "input",
-            message: "What is the roles' title?"
-          },
-          {
-            name: "Salary",
-            type: "input",
-            message: "What is the role's salary?"
-  
-          } 
-      ]).then(function(res) {
-          connection.query(
-              "INSERT INTO role SET ?",
-              {
-                title: res.Title,
-                salary: res.Salary,
-              },
-              function(err) {
-                  if (err) throw err
-                  console.table(res);
-                  beginPrompt();
+function addRole() { 
+  connection.query("SELECT role.title AS Title, role.salary AS Salary FROM role", function(err, res) {
+    inquirer.prompt([
+         {
+          name: "Title",
+          type: "input",
+          message: "What is the roles' title?"
+        },
+        {
+          name: "Salary",
+          type: "input",
+          message: "What is the role's salary?"
+        } 
+    ]).then(function(res) {
+        connection.query(
+            "INSERT INTO role SET ?",
+            {
+              title: res.Title,
+              salary: res.Salary,
+            },
+            function(err) {
+                if (err) throw err
+                console.table(res);
+                beginPrompt();
               }
           )
   
