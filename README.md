@@ -7,10 +7,10 @@ This project was generated using MySQL.
 
 
 ## Installation
-/*:
+
   1. Run npm i in your command line to install all dependencies
   2. Open up MySQL WorkBench and run the script: schema.sql
-*/
+
 
 ## Usage
 To use this application, simply enter "node index.js" into your command line. Once the application is running, you can use your arrow keys to navigate through different options. 
