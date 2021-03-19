@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/maria-lara/employee-tracker/issues"
   },
-  "homepage": "https://github.com/maria-lara/employee-tracker#readme"
+  "homepage": "https://github.com/maria-lara/employee-tracker#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^8.0.0",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {}
 }
