@@ -19,9 +19,6 @@ To use this application, simply enter "node index.js" into your command line. On
 ## Contributors
 [Maria Lara](https://github/com/Maria-lara/)
 
-# Sample
-Check out an example![screenshot of html](ss)
-
 ## Questions
 * For questions, feedback, or comments, please contact mariaerlara@gmail.com.
 
